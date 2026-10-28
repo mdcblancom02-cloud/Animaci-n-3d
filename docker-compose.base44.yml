@@ -1,0 +1,49 @@
+# Base44 sandbox runbook.
+#
+# Development-oriented: the repo is bind-mounted into a plain Node runtime image and
+# the Vite dev server is started from the cloned source, so edits are picked up live
+# (no image rebuild needed). Do not replace this with the project's own production
+# image or a Dockerfile that COPYs the source in — that would freeze the code.
+#
+#   docker compose -f docker-compose.base44.yml up -d --build
+#   open http://localhost:3000
+#
+services:
+  web:
+    image: node:22-alpine
+    working_dir: /app
+    # Install from the current lockfile at startup (mounts are ready here), then exec
+    # the dev server. Keeps dependencies in sync with package.json without rebuilding.
+    command:
+      - sh
+      - -ec
+      - CI=true npm install --no-audit --no-fund && exec npm run dev -- --host 0.0.0.0 --port 5173
+    ports:
+      - "3000:5173"
+    volumes:
+      - .:/app
+      - web_node_modules:/app/node_modules
+    environment:
+      # Sandbox-only flags, passed through bare (never hardcoded). Vite >= 6.1 appends
+      # __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS to server.allowedHosts so the preview
+      # host (3000-<suffix>) is accepted by the dev server's host check.
+      - BASE44_PREVIEW_MODE
+      - __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS
+    labels:
+      - base44.project=Animate-Master
+      - base44.kind=web
+      - base44.port=3000
+    healthcheck:
+      # Checks real application responsiveness (the dev server must answer on /),
+      # not just an open port. wget ships with the alpine image.
+      test:
+        - CMD-SHELL
+        - wget -qO- http://127.0.0.1:5173/ >/dev/null || { echo "frontend (vite dev server on :5173) not responding"; exit 1; }
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
+    restart: on-failure
+
+volumes:
+  web_node_modules:
