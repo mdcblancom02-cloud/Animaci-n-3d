@@ -6,9 +6,15 @@ The `main` branch (commit `15cad3c822c48155633d3eeef2ae4e0f22b7b560`) contains *
 `LICENSE` and `README.md` — no application source, no `package.json`, no Dockerfile, no
 compose file. That is why the app "fails to start": there is nothing to build or serve.
 
+On top of that, the sandbox carries a minimal Vite scaffold (`package.json`, `index.html`,
+`src/style.css`) that serves a placeholder page explaining the repo has no app code yet.
+It is booted and verified: `http://localhost:3000/` returns 200 with the Vite client
+injected, no console errors, no failed requests, and no horizontal overflow at desktop or
+mobile widths.
+
 The product described in the README (*Animate-Master*) lives in a Base44 app that is not
-yet connected to this repository. This repository gains a working preview only once that
-app's code is pushed here.
+yet connected to this repository. This repository gains a working preview of the real app
+only once that app's code is pushed here.
 
 ## Running the sandbox
 
